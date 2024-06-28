@@ -2,8 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Typography } from '@mui/material';
 import patientService from '../../services/patients';
-import { Patient, Diagnosis } from '../../types';
-
+import { Patient, Diagnosis, Entry, OccupationalHealthEntry } from '../../types';
+import MaleIcon from '@mui/icons-material/Male';
+import FemaleIcon from '@mui/icons-material/Female';
+import TransgenderIcon from '@mui/icons-material/Transgender';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import WorkIcon from '@mui/icons-material/Work';
+import HeartIcon from '@mui/icons-material/Favorite';
 
 const PatientInfoPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,23 +51,62 @@ const PatientInfoPage = () => {
     return diagnosis ? diagnosis.name : "Unknown diagnosis code";
   };
 
+  const getGenderIcon = (gender: string) => {
+    if (gender === 'male') {
+      return <MaleIcon />;
+    } else if (gender === 'female') {
+      return <FemaleIcon />;
+    } else {
+      return <TransgenderIcon />;
+    }
+  };
+
+  function isOccupationalHealthEntry(entry: Entry): entry is OccupationalHealthEntry {
+    return entry.type === 'OccupationalHealth';
+  }
+
+  const getTypeIcon = (entry: Entry) => {
+    if (entry.type === 'Hospital') {
+      return <LocalHospitalIcon />;
+    } else if (isOccupationalHealthEntry(entry)) {
+      return <><WorkIcon /> {entry.employerName}</>;
+    } else {
+      return <MedicalServicesIcon />;
+    }
+  };
+
+  const getHealthCheckRating = (rating: number) => {
+    switch (rating) {
+      case 0:
+        return <HeartIcon color='success'/>;
+      case 1:
+        return <HeartIcon color='info'/>;
+      case 2:
+        return <HeartIcon color='warning'/>;
+      case 3:
+        return <HeartIcon color='error'/>;
+      default:
+        return <HeartIcon />;
+    }
+  };
+
   if (!patient) {
     return <div>Loading...</div>;
   }
 
   return (
     <Box>
-      <Typography variant="h4">{patient.name}</Typography>
+      <Typography variant="h4">{patient.name} {getGenderIcon(patient.gender)}</Typography>
       <Typography variant="body1">SSN: {patient.ssn}</Typography>
       <Typography variant="body1">Date of Birth: {patient.dateOfBirth}</Typography>
-      <Typography variant="body1">Gender: {patient.gender}</Typography>
       <Typography variant="body1">Occupation: {patient.occupation}</Typography>
-      {/* Add more patient details here */}
       <div>
         <Typography variant="h5">Entries</Typography>
         {patient.entries.map((entry) => (
+        <Box sx={{ border: '2px solid grey', borderRadius: 1, marginBottom: 2 }}>
           <div key={entry.id}>
-            <Typography variant="body1">{entry.date} {entry.description}</Typography>
+            <Typography variant="body1">{entry.date} {getTypeIcon(entry)} </Typography>
+            <Typography variant='body1'>{entry.description}</Typography>
             <ul>
               {entry.diagnosisCodes?.map((code) => (
                 <li key={code}>{code} - {getDiagnosisDescription(code)}</li>
@@ -71,19 +116,22 @@ const PatientInfoPage = () => {
             {entry.type === 'Hospital' && (
               <div>
                 <Typography variant="body1">Discharge: {entry.discharge.date} {entry.discharge.criteria}</Typography>
+                <Typography variant="body1">diagnose by {entry.specialist}</Typography>
               </div>
             )}
             {entry.type === 'OccupationalHealth' && (
               <div>
-                <Typography variant="body1">Employer: {entry.employerName}</Typography>
+                <Typography variant="body1">diagnose by {entry.specialist}</Typography>
               </div>
             )}
             {entry.type === 'HealthCheck' && (
               <div>
-                <Typography variant="body1">Health Check Rating: {entry.healthCheckRating}</Typography>
+                {getHealthCheckRating(entry.healthCheckRating)}
+                <Typography variant="body1">diagnose by {entry.specialist}</Typography>
               </div>
             )}
           </div>
+        </Box>
         ))}
       </div>
     </Box>
