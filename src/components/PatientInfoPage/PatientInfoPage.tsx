@@ -20,7 +20,7 @@ const PatientInfoPage = () => {
   const [description, setDescription] = useState('');
   const [date, setDate] = useState('');
   const [specialist, setSpecialist] = useState('');
-  const [healthcheckRating, setHealthcheckRating] = useState(HealthCheckRating.Healthy);
+  const [healthCheckRating, setHealthcheckRating] = useState(HealthCheckRating.Healthy);
   const [diagnosisCodes, setDiagnosisCodes] = useState<string[]>([]);
 
 
@@ -127,20 +127,17 @@ const PatientInfoPage = () => {
     e.preventDefault();
     try {
       const formData: PatientFormValues2 = {
-        name: patient.name,
-        dateOfBirth: patient.dateOfBirth,
-        ssn: patient.ssn,
-        occupation: patient.occupation,
-        gender: patient.gender,
-        entries: [{
+        // name: patient.name,
+        // dateOfBirth: patient.dateOfBirth,
+        // ssn: patient.ssn,
+        // occupation: patient.occupation,
+        // gender: patient.gender,
           type: 'HealthCheck',
           description,
           date,
           specialist,
-          healthcheckRating,
+          healthCheckRating,
           diagnosisCodes,
-        }
-      ]
       };
       console.log(formData);
 
@@ -220,7 +217,7 @@ const PatientInfoPage = () => {
               label="Type"
               variant="outlined"
               fullWidth
-              value={healthcheckRating.toString()} // Convert healthcheckRating to a string
+              value={healthCheckRating.toString()} // Convert healthcheckRating to a string
               onChange={(e: SelectChangeEvent) => setHealthcheckRating(Number(e.target.value) as HealthCheckRating)}
             >
               {healthCheckOptions.map((option) => (

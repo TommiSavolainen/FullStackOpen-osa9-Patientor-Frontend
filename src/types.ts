@@ -74,19 +74,17 @@ export type NonSensitiveDiagnosisEntry = Omit<Diagnosis, 'latin'>;
 export type PatientFormValues = Omit<Patient, "id" | "entries">;
 
 export interface PatientFormValues2 {
-  name: string;
-  dateOfBirth: string;
-  ssn: string;
-  gender: Gender;
-  occupation: string;
-  entries: [{
+  // name: string;
+  // dateOfBirth: string;
+  // ssn: string;
+  // gender: Gender;
+  // occupation: string;
     description: string;
     date: string;
     specialist: string;
     type: string;
-    healthcheckRating: HealthCheckRating;
+    healthCheckRating: HealthCheckRating;
     diagnosisCodes: Array<Diagnosis['code']>;
-  }]
 }
 
 // export interface Diagnosis {
