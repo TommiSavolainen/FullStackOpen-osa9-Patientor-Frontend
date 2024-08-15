@@ -22,12 +22,9 @@ const PatientInfoPage = () => {
   const [specialist, setSpecialist] = useState('');
   const [healthCheckRating, setHealthcheckRating] = useState(HealthCheckRating.Healthy);
   const [diagnosisCodes, setDiagnosisCodes] = useState<string[]>([]);
+  
+  
 
-
-  // interface HealthCheckRatingOption{
-  //   value: HealthCheckRating;
-  //   // label: string;
-  // }
 
   const healthCheckOptions = [
     { value: HealthCheckRating.Healthy, label: 'Healthy' },
@@ -150,6 +147,7 @@ const PatientInfoPage = () => {
         };
       });
       toggleFormVisibility();
+      window.location.reload();
     } catch (error) {
       console.error(error);
     }
