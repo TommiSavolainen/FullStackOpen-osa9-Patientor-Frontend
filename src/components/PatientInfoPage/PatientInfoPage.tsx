@@ -153,7 +153,6 @@ const PatientInfoPage = () => {
     }
   };
 
-  console.log(HealthCheckRating.Healthy);
 
   return (
     <Box>
