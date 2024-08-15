@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Typography, Button, TextField, Select, SelectChangeEvent, MenuItem } from '@mui/material';
 import patientService from '../../services/patients';
-import { Patient, Diagnosis, Entry, OccupationalHealthEntry, PatientFormValues2, HealthCheckRating, Gender } from '../../types';
+import { Patient, Diagnosis, Entry, OccupationalHealthEntry, PatientFormValues2, HealthCheckRating } from '../../types';
 import MaleIcon from '@mui/icons-material/Male';
 import FemaleIcon from '@mui/icons-material/Female';
 import TransgenderIcon from '@mui/icons-material/Transgender';
@@ -21,7 +21,7 @@ const PatientInfoPage = () => {
   const [date, setDate] = useState('');
   const [specialist, setSpecialist] = useState('');
   const [healthcheckRating, setHealthcheckRating] = useState(HealthCheckRating.Healthy);
-  const [diagnosisCodes, setDiagnosisCodes] = useState([]);
+  const [diagnosisCodes, setDiagnosisCodes] = useState<string[]>([]);
 
 
   // interface HealthCheckRatingOption{
@@ -116,49 +116,12 @@ const PatientInfoPage = () => {
     return <div>Loading...</div>;
   }
 
-//   enum HealthCheckRating {
-//     Healthy = 0,
-//     LowRisk = 1,
-//     HighRisk = 2,
-//     CriticalRisk = 3
-// }
-
-// function getHealthCheckRatingType(rating: string): HealthCheckRating {
-//     switch (rating.toLowerCase()) {
-//         case 'healthy':
-//             return HealthCheckRating.Healthy;
-//         case 'lowrisk':
-//             return HealthCheckRating.LowRisk;
-//         case 'highrisk':
-//             return HealthCheckRating.HighRisk;
-//         case 'criticalrisk':
-//             return HealthCheckRating.CriticalRisk;
-//         default:
-//             throw new Error(`Invalid health check rating: ${rating}`);
-//     }
-// }
-
-// // Example usage in your code
-// const ratingString = "Healthy"; // This would be your string input
-// const healthcheckRating: HealthCheckRating = getHealthCheckRating(ratingString);
-
-// const patientInfo = {
-//     // other properties
-//     healthcheckRating: healthcheckRating
-// };
 
   const toggleFormVisibility = () => {
     setShowForm(!showForm); // Toggle the form visibility
     setShowEntryButton(!showEntryButton); // Toggle the entry button visibility
   };
 
-  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const { id, value } = e.target;
-  //   setFormData((prevData) => ({
-  //     ...prevData,
-  //     [id]: value,
-  //   }));
-  // };
 
   const saveEntry = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,11 +132,15 @@ const PatientInfoPage = () => {
         ssn: patient.ssn,
         occupation: patient.occupation,
         gender: patient.gender,
-        description,
-        date,
-        specialist,
-        healthcheckRating,
-        diagnosisCodes,
+        entries: [{
+          type: 'HealthCheck',
+          description,
+          date,
+          specialist,
+          healthcheckRating,
+          diagnosisCodes,
+        }
+      ]
       };
       console.log(formData);
 
@@ -182,7 +149,7 @@ const PatientInfoPage = () => {
         if (!prevPatient) return null;
         return {
           ...prevPatient,
-          entries: [...prevPatient.entries, newEntry],
+          entries: [...prevPatient.entries, newEntry] as Entry[],
         };
       });
       toggleFormVisibility();
@@ -253,13 +220,12 @@ const PatientInfoPage = () => {
               label="Type"
               variant="outlined"
               fullWidth
-              value={healthcheckRating}
-              onChange={(e: SelectChangeEvent) => setHealthcheckRating(e.target.value as HealthCheckRating)}
+              value={healthcheckRating.toString()} // Convert healthcheckRating to a string
+              onChange={(e: SelectChangeEvent) => setHealthcheckRating(Number(e.target.value) as HealthCheckRating)}
             >
               {healthCheckOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
-                  {option.value} - 
-                  {option.label}
+                  {option.value} - {option.label}
                 </MenuItem>
               ))}
             </Select>
@@ -272,7 +238,7 @@ const PatientInfoPage = () => {
               fullWidth
               margin="normal"
               value={diagnosisCodes}
-              onChange={({target}) => setDiagnosisCodes(target.value)}
+              onChange={({target}) => setDiagnosisCodes([target.value])}
             />
           </div>
           <Button variant='contained' color='primary' style={{marginLeft: 10, marginBottom: 10}} onClick={toggleFormVisibility}>cancel</Button>

@@ -79,11 +79,14 @@ export interface PatientFormValues2 {
   ssn: string;
   gender: Gender;
   occupation: string;
-  description: string;
-  date: string;
-  specialist: string;
-  healthcheckRating: HealthCheckRating;
-  diagnosisCodes: Array<Diagnosis['code']>;
+  entries: [{
+    description: string;
+    date: string;
+    specialist: string;
+    type: string;
+    healthcheckRating: HealthCheckRating;
+    diagnosisCodes: Array<Diagnosis['code']>;
+  }]
 }
 
 // export interface Diagnosis {
