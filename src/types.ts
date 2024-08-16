@@ -73,12 +73,7 @@ export type NonSensitivePatient = Omit<Patient, 'ssn' | 'entries'>;
 export type NonSensitiveDiagnosisEntry = Omit<Diagnosis, 'latin'>;
 export type PatientFormValues = Omit<Patient, "id" | "entries">;
 
-export interface PatientFormValues2 {
-  // name: string;
-  // dateOfBirth: string;
-  // ssn: string;
-  // gender: Gender;
-  // occupation: string;
+export interface PatientFormValuesHealthCheck {
     description: string;
     date: string;
     specialist: string;
@@ -87,29 +82,28 @@ export interface PatientFormValues2 {
     diagnosisCodes: Array<Diagnosis['code']>;
 }
 
-// export interface Diagnosis {
-//   code: string;
-//   name: string;
-//   latin?: string;
-// }
+export interface PatientFormValuesHospital {
+    description: string;
+    date: string;
+    specialist: string;
+    type: string;
+    discharge: {
+        date: string;
+        criteria: string;
+    };
+    diagnosisCodes: Array<Diagnosis['code']>;
+}
 
-// export enum Gender {
-//   Male = "male",
-//   Female = "female",
-//   Other = "other"
-// }
+export interface PatientFormValuesOccupational {
+    description: string;
+    date: string;
+    specialist: string;
+    type: string;
+    employerName: string;
+    sickLeave: {
+        startDate: string;
+        endDate: string;
+    };
+    diagnosisCodes: Array<Diagnosis['code']>;
+}
 
-// interface Entry {
-// }
-
-// export interface Patient {
-//   id: string;
-//   name: string;
-//   occupation: string;
-//   gender: Gender;
-//   ssn?: string;
-//   dateOfBirth?: string;
-//   entries: Entry[];
-// }
-
-// export type PatientFormValues = Omit<Patient, "id" | "entries">;

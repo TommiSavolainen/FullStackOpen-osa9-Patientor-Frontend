@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Typography, Button, TextField, Select, SelectChangeEvent, MenuItem } from '@mui/material';
+import { Box, Typography, Button, TextField, Select, SelectChangeEvent, MenuItem, Alert, FormControl, InputLabel } from '@mui/material';
 import patientService from '../../services/patients';
-import { Patient, Diagnosis, Entry, OccupationalHealthEntry, PatientFormValues2, HealthCheckRating } from '../../types';
+import { Patient, Diagnosis, Entry, OccupationalHealthEntry, PatientFormValuesHealthCheck, HealthCheckRating, PatientFormValuesHospital, PatientFormValuesOccupational } from '../../types';
 import MaleIcon from '@mui/icons-material/Male';
 import FemaleIcon from '@mui/icons-material/Female';
 import TransgenderIcon from '@mui/icons-material/Transgender';
@@ -22,7 +22,13 @@ const PatientInfoPage = () => {
   const [specialist, setSpecialist] = useState('');
   const [healthCheckRating, setHealthcheckRating] = useState(HealthCheckRating.Healthy);
   const [diagnosisCodes, setDiagnosisCodes] = useState<string[]>([]);
-  
+  const [type, setType] = useState('');
+  const [dischargeDate, setDischargeDate] = useState('');
+  const [dischargeCriteria, setDischargeCriteria] = useState('');
+  const [employerName, setEmployerName] = useState('');
+  const [sickLeaveStartDate, setSickLeaveStartDate] = useState('');
+  const [sickLeaveEndDate, setSickLeaveEndDate] = useState('');
+  const [error, setError] = useState<string | null>(null);
   
 
 
@@ -33,6 +39,9 @@ const PatientInfoPage = () => {
     { value: HealthCheckRating.CriticalRisk, label: 'Critical Risk' },
   ];
 
+  interface ErrorResponse {
+    data: string;
+  }
 
   useEffect(() => {
     const fetchDiagnoses = async () => {
@@ -123,19 +132,45 @@ const PatientInfoPage = () => {
   const saveEntry = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const formData: PatientFormValues2 = {
-        // name: patient.name,
-        // dateOfBirth: patient.dateOfBirth,
-        // ssn: patient.ssn,
-        // occupation: patient.occupation,
-        // gender: patient.gender,
-          type: 'HealthCheck',
+      
+      let formData: PatientFormValuesHealthCheck | PatientFormValuesHospital | PatientFormValuesOccupational | undefined;
+      
+      if (type === 'HealthCheck') {
+        formData = {
+          type,
           description,
           date,
           specialist,
           healthCheckRating,
           diagnosisCodes,
-      };
+        };
+      } else if (type === 'Hospital') {
+        formData = {
+          type,
+          description,
+          date,
+          specialist,
+          diagnosisCodes,
+          discharge: {
+            date: dischargeDate,
+            criteria: dischargeCriteria,
+          },
+        };
+      } else {
+        formData = {
+          type,
+          description,
+          date,
+          specialist,
+          diagnosisCodes,
+          employerName,
+          sickLeave: {
+            startDate: sickLeaveStartDate,
+            endDate: sickLeaveEndDate,
+          },
+        };
+      }
+      
       console.log(formData);
 
       const newEntry = await patientService.addEntry(id!, formData);
@@ -150,6 +185,12 @@ const PatientInfoPage = () => {
       window.location.reload();
     } catch (error) {
       console.error(error);
+      const errorResponse = error as { response: unknown };
+      if (errorResponse.response) {
+        setError((errorResponse.response as ErrorResponse).data as string);
+      } else {
+        setError('An unknown error occurred. Please try again later.');
+      }
     }
   };
 
@@ -167,10 +208,29 @@ const PatientInfoPage = () => {
         </Button>
           )}
       </div>
+      {error && <Alert severity="error">{error}</Alert>}
       {showForm && (
         <Box sx={{ border: '2px solid grey', borderRadius: 1, marginBottom: 2 }}>
           <Typography variant='h5'>Add new entry</Typography>
           <form onSubmit={saveEntry}>
+          <div>
+            <FormControl fullWidth variant="outlined" margin="normal">
+            <InputLabel id="type-label">Select type:</InputLabel>
+            <Select
+              id="type"
+              labelId="type-label"
+              label="Select type:"
+              variant="outlined"
+              fullWidth
+              value={type}
+              onChange={(e: SelectChangeEvent) => setType(e.target.value)}
+            >
+              <MenuItem value='Hospital'>Hospital</MenuItem>
+              <MenuItem value='OccupationalHealth'>Occupational Health</MenuItem>
+              <MenuItem value='HealthCheck'>Health Check</MenuItem>
+            </Select>
+          </FormControl>
+          </div>
           <div>
             <TextField
               id="description"
@@ -209,9 +269,29 @@ const PatientInfoPage = () => {
             />
           </div>
           <div>
+          <FormControl fullWidth variant="outlined" margin="normal">
+          <InputLabel id="diagnosis-codes-label">Diagnosis Codes</InputLabel>
+          <Select
+            labelId="diagnosis-codes-label"
+            multiple
+            value={diagnosisCodes}
+            onChange={(e) => setDiagnosisCodes(e.target.value as string[])}
+            renderValue={(selected) => selected.join(', ')}
+            label="Diagnosis Codes"
+          >
+            {diagnoses.map((diagnosis) => (
+              <MenuItem key={diagnosis.code} value={diagnosis.code}>
+                {diagnosis.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+          </div>
+          {type === 'HealthCheck' && (
+          <div>
             <Select
-              id="type"
-              label="Type"
+              id="healthCheckRating"
+              label="healthCheckRating"
               variant="outlined"
               fullWidth
               value={healthCheckRating.toString()} // Convert healthcheckRating to a string
@@ -224,22 +304,78 @@ const PatientInfoPage = () => {
               ))}
             </Select>
           </div>
+          )}
+          {type === 'Hospital' && (
           <div>
             <TextField
-              id="diagnosisCodes"
-              label="Diagnosis Codes"
+              id="dischargeDate"
+              label="Discharge Date"
+              type="date"
               variant="outlined"
               fullWidth
               margin="normal"
-              value={diagnosisCodes}
-              onChange={({target}) => setDiagnosisCodes([target.value])}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={dischargeDate}
+              onChange={({target}) => setDischargeDate(target.value)}
+            />
+            <TextField
+              id="dischargeCriteria"
+              label="Discharge Criteria"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              value={dischargeCriteria}
+              onChange={({target}) => setDischargeCriteria(target.value)}
             />
           </div>
+          )}
+          {type === 'OccupationalHealth' && (
+          <div>
+            <TextField
+              id="employerName"
+              label="Employer Name"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              value={employerName}
+              onChange={({target}) => setEmployerName(target.value)}
+            />
+            <TextField
+              id="sickLeaveStartDate"
+              label="Sick Leave Start Date"
+              type="date"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={sickLeaveStartDate}
+              onChange={({target}) => setSickLeaveStartDate(target.value)}
+            />
+            <TextField
+              id="sickLeaveEndDate"
+              label="Sick Leave End Date"
+              type="date"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              InputLabelProps={{
+                shrink: true,
+              }}
+              value={sickLeaveEndDate}
+              onChange={({target}) => setSickLeaveEndDate(target.value)}
+            />
+          </div>
+          )}
           <Button variant='contained' color='primary' style={{marginLeft: 10, marginBottom: 10}} onClick={toggleFormVisibility}>cancel</Button>
           <Button style={{float: "right", marginRight: 10}} variant='contained' color='primary' type='submit'>save</Button>
           </form>
         </Box>
       )}
+      
       <div>
         <Typography variant="h5">Entries</Typography>
         {patient.entries.map((entry) => (
